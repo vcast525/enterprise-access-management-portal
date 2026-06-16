@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Office Temporary Files
+~$*.docx
+~$*.xlsx
+~$*.pptx.idea/
