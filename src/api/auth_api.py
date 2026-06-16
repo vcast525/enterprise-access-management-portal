@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from src.auth.role_utils import has_admin_access
+
 
 from src.auth.jwt_utils import (
     create_access_token,
@@ -96,4 +98,30 @@ def protected(token: str):
         "message": "Protected access granted",
         "user": payload.get("sub"),
         "role": payload.get("role"),
+    }
+
+@app.get("/admin")
+def admin_only(token: str):
+    payload = decode_access_token(
+        token
+    )
+
+    if payload is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+        )
+
+    role = payload.get("role")
+
+    if not has_admin_access(role):
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required",
+        )
+
+    return {
+        "message": "Admin access granted",
+        "user": payload.get("sub"),
+        "role": role,
     }
