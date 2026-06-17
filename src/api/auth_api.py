@@ -42,20 +42,27 @@ def register(request: RegisterRequest):
         request.password
     )
 
-    user = register_user(
-        username=request.username,
-        email=request.email,
-        password=hashed_password,
-        role=request.role,
-    )
+    try:
+        user = register_user(
+            username=request.username,
+            email=request.email,
+            password=hashed_password,
+            role=request.role,
+        )
 
-    return {
-        "user_id": user.user_id,
-        "username": user.username,
-        "email": user.email,
-        "role": user.role,
-        "is_active": user.is_active,
-    }
+        return {
+            "user_id": user.user_id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+            "is_active": user.is_active,
+        }
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=409,
+            detail=str(error),
+        )
 
 
 @app.post("/login")

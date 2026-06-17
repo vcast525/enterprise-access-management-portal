@@ -3,6 +3,12 @@ import requests
 
 API_BASE_URL = "http://127.0.0.1:8000"
 
+def clear_registration_form():
+    st.session_state.register_username = ""
+    st.session_state.register_email = ""
+    st.session_state.register_password = ""
+    st.session_state.register_role = "User"
+
 def register_user(
     username: str,
     email: str,
@@ -66,6 +72,7 @@ def test_admin_endpoint(token: str) -> dict:
 
     return response.json()
 
+
 st.set_page_config(
     page_title="Enterprise Access Management Portal",
     page_icon="🔐",
@@ -80,6 +87,24 @@ if "current_user" not in st.session_state:
 
 if "current_role" not in st.session_state:
     st.session_state.current_role = None
+
+if "register_username" not in st.session_state:
+    st.session_state.register_username = ""
+
+if "register_email" not in st.session_state:
+    st.session_state.register_email = ""
+
+if "register_password" not in st.session_state:
+    st.session_state.register_password = ""
+
+if "login_username" not in st.session_state:
+    st.session_state.login_username = ""
+
+if "login_password" not in st.session_state:
+    st.session_state.login_password = ""
+
+if "register_role" not in st.session_state:
+    st.session_state.register_role = "User"
 
 st.title("🔐 Enterprise Access Management Portal")
 
@@ -167,6 +192,7 @@ with tab1:
             "Manager",
             "Admin",
         ],
+        key="register_role",
     )
 
     if st.button("Register User"):
@@ -181,8 +207,22 @@ with tab1:
             st.success("User registered successfully.")
             st.json(result)
 
+        except requests.exceptions.HTTPError as error:
+
+            error_detail = error.response.json().get(
+                "detail",
+                "Registration failed.",
+            )
+
+            st.error(error_detail)
+
         except Exception as error:
             st.error(f"Registration failed: {error}")
+
+    st.button(
+        "Clear Registration Form",
+        on_click=clear_registration_form,
+    )
 
 with tab2:
 
@@ -222,13 +262,13 @@ with tab2:
 
         except Exception as error:
             st.error(f"Login failed: {error}")
-
 with tab3:
 
     st.subheader("Access Testing")
 
     if st.session_state.access_token:
         st.success("Authenticated session active.")
+
         if st.session_state.current_user:
             col1, col2 = st.columns(2)
 
@@ -276,6 +316,12 @@ with tab3:
 
             except Exception as error:
                 st.error(f"Admin access failed: {error}")
+
+        if st.button("Logout / Clear Session"):
+            st.session_state.access_token = None
+            st.session_state.current_user = None
+            st.session_state.current_role = None
+            st.rerun()
 
     else:
         st.warning("Please log in before testing protected access.")
